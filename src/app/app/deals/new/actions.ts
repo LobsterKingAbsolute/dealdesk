@@ -7,6 +7,49 @@ function fail(message: string): never {
   redirect(`/app/deals/new?error=${encodeURIComponent(message)}`);
 }
 
+export async function createBrand(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  const name =
+    (formData.get("brand_name") as string | null)?.trim() ?? "";
+  if (!name) {
+    fail("Brand name is required.");
+  }
+
+  const contact_name =
+    (formData.get("brand_contact_name") as string | null)?.trim() || null;
+  const contact_email =
+    (formData.get("brand_contact_email") as string | null)?.trim() || null;
+
+  const { data, error } = await supabase
+    .from("brands")
+    .insert({
+      user_id: user.id,
+      name,
+      contact_name,
+      contact_email,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    fail(error.message);
+  }
+
+  const newId = data?.id;
+  if (!newId) {
+    fail("Could not create brand.");
+  }
+
+  redirect(`/app/deals/new?brand=${encodeURIComponent(newId)}`);
+}
+
 export async function createDeal(formData: FormData) {
   const supabase = await createClient();
   const {

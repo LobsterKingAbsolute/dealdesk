@@ -2,10 +2,10 @@ import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
 
-import { createDeal } from "./actions";
+import { createBrand, createDeal } from "./actions";
 
 type Props = {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; brand?: string }>;
 };
 
 const STATUS_OPTIONS = [
@@ -25,6 +25,11 @@ export default async function NewDealPage({ searchParams }: Props) {
     .order("name", { ascending: true });
 
   const params = await searchParams;
+  const selectedBrandId =
+    params.brand &&
+    (brands ?? []).some((b) => b.id === params.brand)
+      ? params.brand
+      : "";
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
@@ -47,6 +52,51 @@ export default async function NewDealPage({ searchParams }: Props) {
         </p>
       ) : null}
 
+      <div className="bg-muted/30 space-y-3 rounded-lg border border-border p-4 text-sm">
+        <p className="text-foreground font-medium">Add a brand</p>
+        <p className="text-muted-foreground text-xs">
+          Saves immediately. It will show up in the list below.
+        </p>
+        <form action={createBrand} className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1.5">
+            <span>
+              Name <span className="text-destructive">*</span>
+            </span>
+            <input
+              name="brand_name"
+              type="text"
+              required
+              autoComplete="organization"
+              className="border-input bg-background focus-visible:ring-ring rounded-md border px-3 py-2 outline-none focus-visible:ring-2"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span>Contact name</span>
+            <input
+              name="brand_contact_name"
+              type="text"
+              autoComplete="name"
+              className="border-input bg-background focus-visible:ring-ring rounded-md border px-3 py-2 outline-none focus-visible:ring-2"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span>Contact email</span>
+            <input
+              name="brand_contact_email"
+              type="email"
+              autoComplete="email"
+              className="border-input bg-background focus-visible:ring-ring rounded-md border px-3 py-2 outline-none focus-visible:ring-2"
+            />
+          </label>
+          <button
+            type="submit"
+            className="border-border text-foreground hover:bg-muted inline-flex h-8 items-center justify-center self-start rounded-lg border bg-transparent px-3 text-xs font-medium transition-colors"
+          >
+            Add brand
+          </button>
+        </form>
+      </div>
+
       <form action={createDeal} className="flex flex-col gap-4 text-sm">
         <label className="flex flex-col gap-1.5">
           <span className="text-foreground font-medium">
@@ -65,6 +115,7 @@ export default async function NewDealPage({ searchParams }: Props) {
           <span className="text-foreground font-medium">Brand</span>
           <select
             name="brand_id"
+            defaultValue={selectedBrandId}
             className="border-input bg-background focus-visible:ring-ring rounded-md border px-3 py-2 outline-none focus-visible:ring-2"
           >
             <option value="">None</option>
